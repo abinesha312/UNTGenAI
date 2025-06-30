@@ -2,6 +2,7 @@
 # Run Gemma 3 27B fine-tuning with optimal settings
 set -euo pipefail
 
+
 # Default options (can be overridden by environment variables)
 DATA_PATH=${DATA_PATH:-"/home/models/FAISS_INGEST/scraped_data.json"}
 OUTPUT_DIR=${OUTPUT_DIR:-"./gemma-3-finetuned"}
