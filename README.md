@@ -83,6 +83,8 @@ Dr. Murali is a Clinical Associate Professor in the Department of Computer Scien
 > _"Dr. Beddhu Murali is instrumental in the design and the technical implementation of the evolving UNT strategy of using open-source Generative AI technologies as powerful tools for providing timely and accurate UNT-specific information and data to multiple stakeholders across the UNT campus."_  
 > — [UNT Division of Digital Strategy and Innovation](https://digitalstrategy.unt.edu/about/news-events.html)
 
+![Dr.Beddhu Murali](demo/Dr.Beddhu%20Murali.png)
+
 **Contact Information:**
 
 - **Email:** Beddhu.Murali@unt.edu
