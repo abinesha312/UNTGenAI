@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # UNT AI Assistant
 
 A high-performance multi-agent AI assistant designed for the University of North Texas. Built on the **Gemma 3 27B** model and accelerated with **vLLM**, the system provides targeted academic support via a web-based interface powered by **Chainlit**.
@@ -63,6 +62,34 @@ _Screenshot shows eight NVIDIA H100 GPUs running parallel inference threads with
 | Launch Mode                    | Multi-GPU, Multi-process via Podman |
 
 > _Note: GPUs 0–3 remain idle, while GPUs 4–7 actively handle batched inference requests from concurrent clients._
+
+---
+
+## 👨‍🎓 Academic Leadership & Collaboration
+
+### Dr. Beddhu Murali - DSI Senior Innovation Fellow
+
+This project is developed in collaboration with **Dr. Beddhu Murali**, who serves as the University of North Texas Division of Digital Strategy and Innovation (DSI) **Senior Innovation Fellow for FY24**.
+
+Dr. Murali is a Clinical Associate Professor in the Department of Computer Science and Engineering at UNT and plays a crucial role in advancing Generative AI initiatives at the university.
+
+**Key Contributions:**
+
+- **Primary Expert** on UNT's signature Generative AI project
+- **Member** of the UNT ad hoc Generative AI Steering Committee
+- **Technical Lead** in the design and implementation of UNT's strategy for using open-source Generative AI technologies
+- **Champion** for providing timely and accurate UNT-specific information and data to multiple stakeholders across campus
+
+> _"Dr. Beddhu Murali is instrumental in the design and the technical implementation of the evolving UNT strategy of using open-source Generative AI technologies as powerful tools for providing timely and accurate UNT-specific information and data to multiple stakeholders across the UNT campus."_  
+> — [UNT Division of Digital Strategy and Innovation](https://digitalstrategy.unt.edu/about/news-events.html)
+
+**Contact Information:**
+
+- **Email:** Beddhu.Murali@unt.edu
+- **Office:** Discovery Park E245N
+- **Department:** Computer Science and Engineering, College of Engineering
+
+For more information about Dr. Murali, visit his [faculty profile](https://engineering.unt.edu/people/beddhu-murali.html).
 
 ---
 
@@ -224,7 +251,3 @@ print(response)
 ## License
 
 This code is released under the Apache 2.0 license.
-=======
-# UNTGenAI
-UNT GenAI system 
->>>>>>> e240d80d81df73a1afe3520261971fb6eacdddba
