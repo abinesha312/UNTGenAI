@@ -1,0 +1,17 @@
+torch
+argon2-cffi
+transformers
+langchain
+langchain-core
+langchain-community
+faiss-cpu
+accelerate
+numpy
+regex
+mesop
+python-dotenv
+requests
+pillow
+pytest
+black
+flake8

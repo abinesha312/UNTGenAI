@@ -1,0 +1,17 @@
+{
+    "start_time": "Fri Oct  4 01:13:40 2024",
+    "end_time": "Fri Oct  4 01:16:02 2024",
+    "response_time": "141.828151 seconds",
+    "document_statistics": {
+        "min_count": {
+            "count": 10,
+            "url": "https://music.unt.edu/faculty-and-staff"
+        },
+        "max_count": {
+            "count": 96568,
+            "url": "https://digital.library.unt.edu/explore/partners/UNTA/"
+        },
+        "average_count": "1151.50",
+        "total_documents": 199
+    }
+}
