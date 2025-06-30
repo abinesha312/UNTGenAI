@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # UNT AI Assistant
 
 A high-performance multi-agent AI assistant designed for the University of North Texas. Built on the **Gemma 3 27B** model and accelerated with **vLLM**, the system provides targeted academic support via a web-based interface powered by **Chainlit**.
@@ -223,3 +224,7 @@ print(response)
 ## License
 
 This code is released under the Apache 2.0 license.
+=======
+# UNTGenAI
+UNT GenAI system 
+>>>>>>> e240d80d81df73a1afe3520261971fb6eacdddba
