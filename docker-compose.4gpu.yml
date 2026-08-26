@@ -1,0 +1,20 @@
+version: '3.8'
+
+# Override configuration for 4-GPU setup
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.4gpu.yml up
+
+services:
+  vllm-server:
+    environment:
+      # Override GPU configuration for 4 GPUs
+      - NVIDIA_VISIBLE_DEVICES=0,1,2,3
+      - CUDA_VISIBLE_DEVICES=0,1,2,3
+      - TENSOR_PARALLEL_SIZE=4
+    shm_size: '8gb'
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 4
+              capabilities: [gpu]

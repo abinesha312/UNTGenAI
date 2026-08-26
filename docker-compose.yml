@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  # vLLM inference server with 8-GPU support
+  vllm-server:
+    build:
+      context: ./vllm-serve
+      dockerfile: Dockerfile
+    image: vllm-server:latest
+    container_name: unt-vllm-server
+    ports:
+      - "5000:5000"
+    environment:
+      # GPU configuration
+      - NVIDIA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
+      - CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
+      - TENSOR_PARALLEL_SIZE=8
+      # Model configuration
+      - MODEL_ID=google/gemma-3-27b-it
+      # vLLM settings
+      - VLLM_USE_CUDA_GRAPH=1
+      - VLLM_GPU_MEMORY_UTILIZATION=0.5
+      - VLLM_LOGGING_LEVEL=INFO
+      # PyTorch settings
+      - TORCH_COMPILE_MODE=reduce-overhead
+      - TORCH_INDUCTOR_COMPILE_TO_EAGER=1
+      - TORCH_DYNAMO_DISABLE=1
+      - TORCH_CUDNN_V8_API_DISABLED=1
+      # NCCL for multi-GPU communication
+      - NCCL_DEBUG=INFO
+      # HuggingFace cache (offline mode)
+      - HF_HUB_OFFLINE=1
+      - TRANSFORMERS_OFFLINE=1
+    volumes:
+      - ${HF_CACHE_PATH:-~/.cache/huggingface}:/root/.cache/huggingface
+    shm_size: '16gb'
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 8
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/v1/models"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+  # Chainlit frontend application
+  chainlit-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.chainlit
+    image: unt-chainlit-app:latest
+    container_name: unt-chainlit-app
+    ports:
+      - "8000:8000"
+    environment:
+      # Inference server configuration
+      - INFERENCE_SERVER_URL=http://vllm-server:5000/v1
+      - MODEL_ID=google/gemma-3-27b-it
+      # Chainlit configuration
+      - CHAINLIT_HOST=0.0.0.0
+      - CHAINLIT_PORT=8000
+      # Model settings
+      - MAX_TOKENS=512
+      - TEMPERATURE=0.2
+      - MAX_RETRIES=2
+      - RETRY_DELAY=1
+      - REQUEST_TIMEOUT=10
+      # Path configuration
+      - MODELS_BASE_PATH=/models
+      - DATA_BASE_PATH=/data
+      - VECTOR_DB_PATH=/models/FAISS_INGEST/vectorstore/db_faiss
+      # Optional settings
+      - ENABLE_Q_REWRITE=true
+    volumes:
+      - ./models:/models
+      - ./data:/data
+    depends_on:
+      vllm-server:
+        condition: service_healthy
+    restart: unless-stopped
+
+# Alternative configuration for 4-GPU setup
+# To use: docker-compose -f docker-compose.yml -f docker-compose.4gpu.yml up
