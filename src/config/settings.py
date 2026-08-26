@@ -15,18 +15,20 @@ REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT", "10"))
 CHAINLIT_HOST = os.getenv("CHAINLIT_HOST", "0.0.0.0")
 CHAINLIT_PORT = int(os.getenv("CHAINLIT_PORT", "8000"))
 
-# Vector database configuration
-VECTOR_DB_PATH = os.getenv("VECTOR_DB_PATH", "/home/models/FAISS_INGEST/vectorstore/db_faiss")
+# Path configuration - use environment variables instead of hardcoded paths
+MODELS_BASE_PATH = os.getenv("MODELS_BASE_PATH", "/models")
+DATA_BASE_PATH = os.getenv("DATA_BASE_PATH", "/data")
+VECTOR_DB_PATH = os.getenv("VECTOR_DB_PATH", f"{MODELS_BASE_PATH}/FAISS_INGEST/vectorstore/db_faiss")
 
 # Log configuration
-logger.info(f"Connecting to vLLM server at: {INFERENCE_SERVER_URL}")
+logger.info(f"Connecting to inference server at: {INFERENCE_SERVER_URL}")
 logger.info(f"Using model: {MODEL_ID}")
 logger.info(f"Using vector database at: {VECTOR_DB_PATH}")
 
 # Model configuration
 # Maximum tokens in responses - must leave room for prompt tokens within context window
-MAX_TOKENS = 512  # Reduced from 1024 to 512 for faster responses
-TEMPERATURE = 0.2  # Reduced to 0.2 for more focused and deterministic responses
+MAX_TOKENS = int(os.getenv("MAX_TOKENS", "512"))
+TEMPERATURE = float(os.getenv("TEMPERATURE", "0.2"))
 
 # Question rewrite settings
 REWRITE_MODEL_ID = os.getenv("REWRITE_MODEL_ID", MODEL_ID)

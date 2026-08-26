@@ -2,7 +2,6 @@ import os
 import logging
 import chainlit as cl
 from openai import OpenAI
-from vllm.deploy import VLLMEngine, EngineArgs
 from config.settings import (
     CHAINLIT_HOST,
     CHAINLIT_PORT,
@@ -11,58 +10,14 @@ from config.settings import (
     MODEL_ID,
     REWRITE_MODEL_ID,
     ENABLE_Q_REWRITE,
-    CUDA_DEVICE,                  # GPU device index (e.g., "0")
-    VLLM_MAX_TOKENS,              # Maximum tokens per request
-    VLLM_NUM_GPUS,                # Number of GPUs for tensor parallelism
-    VLLM_NUM_THREADS_PER_GPU,     # Threads per GPU for prefill/scheduling
+    MAX_TOKENS,
+    TEMPERATURE,
 )
 from agents.registry import agents, determine_agent_type
 from models.classification import AgentType
 
 # ------------------------------------------------------------
-# CUDA + vLLM Kernel-Level Configuration
-# ------------------------------------------------------------
-
-# 1. Specify which GPU devices are visible to CUDA at kernel launch.
-#    This controls device enumeration and assignment for all CUDA kernels.
-os.environ.setdefault("CUDA_VISIBLE_DEVICES", str(CUDA_DEVICE))
-
-# 2. Kernel-launch settings and vLLM tuning flags:
-#    - VLLM_USE_TRITON_FLASH_ATTN: enable high-performance Triton flash attention kernels
-#    - VLLM_ATTENTION_BACKEND: select optimized attention implementation
-#    - NCCL_DEBUG: verbose logging for inter-GPU communication kernels
-os.environ.setdefault("VLLM_USE_TRITON_FLASH_ATTN", "1")
-os.environ.setdefault("VLLM_ATTENTION_BACKEND", "FLASH_ATTN")
-os.environ.setdefault("NCCL_DEBUG", "INFO")
-
-# 3. vLLM internal resource limits:
-#    - VLLM_MAX_TOKENS: maximum model-generated tokens per inference
-#    - VLLM_NUM_GPUS: tensor parallel group size; shards weights across GPUs
-#    - VLLM_NUM_THREADS_PER_GPU: threads per GPU for prefill scheduling
-os.environ.setdefault("VLLM_MAX_TOKENS", str(VLLM_MAX_TOKENS))
-os.environ.setdefault("VLLM_NUM_GPUS", str(VLLM_NUM_GPUS))
-os.environ.setdefault("VLLM_NUM_THREADS_PER_GPU", str(VLLM_NUM_THREADS_PER_GPU))
-
-# 4. Optional kernel compilation flags:
-#    - CUDA_LAUNCH_BLOCKING=0: asynchronous kernel launches for throughput
-#    - VLLM_USE_PRECOMPILED=0: force (re)compile custom CUDA kernels if needed
-os.environ.setdefault("CUDA_LAUNCH_BLOCKING", "0")
-os.environ.setdefault("VLLM_USE_PRECOMPILED", "0")
-
-# ------------------------------------------------------------
-# Initialize vLLM engine with tensor parallel settings
-# ------------------------------------------------------------
-_engine_args = EngineArgs(
-    model=MODEL_ID,
-    max_tokens=VLLM_MAX_TOKENS,
-    tensor_parallel_size=VLLM_NUM_GPUS,  # shards model weights across GPUs
-    prefill_scheduler="priority",        # schedule token prefill across threads/GPUs
-    sampling_params={"temperature": 0.7, "top_p": 0.95},
-)
-vllm_engine = VLLMEngine(_engine_args)
-
-# ------------------------------------------------------------
-# Standard Chainlit & Logging Setup
+# Initialize OpenAI-compatible client for vLLM or TensorRT-LLM server
 # ------------------------------------------------------------
 logging.basicConfig(
     level=logging.INFO,
@@ -112,14 +67,24 @@ async def set_starters():
     ]
 
 
+def get_llm_client():
+    """Get an OpenAI-compatible client for the inference server."""
+    return OpenAI(
+        api_key="EMPTY",
+        base_url=INFERENCE_SERVER_URL,
+        timeout=REQUEST_TIMEOUT,
+    )
+
+
 def verify_llm_server():
     """Ping the vLLM/OpenAI-compatible server to ensure readiness."""
     try:
-        vllm_engine.list_models()  # triggers internal CUDA kernels for health check
-        logger.info("vLLM server is reachable")
+        client = get_llm_client()
+        client.models.list()
+        logger.info(f"Inference server at {INFERENCE_SERVER_URL} is reachable")
         return True
     except Exception as e:
-        logger.error(f"Cannot reach vLLM server at {INFERENCE_SERVER_URL}: {e}")
+        logger.error(f"Cannot reach inference server at {INFERENCE_SERVER_URL}: {e}")
         return False
 
 
@@ -202,8 +167,8 @@ async def handle_message(message: cl.Message):
     # Append to conversation history
     context["conversation_history"].append({"role": "user", "content": refined_input})
 
-    # Generate response using vLLM engine (invokes CUDA kernels internally)
-    result = current_agent.process_input(refined_input, engine=vllm_engine)
+    # Generate response using the agent
+    result = current_agent.process_input(refined_input)
 
     # Skip interactive prompts
     if result["type"] == "input_request":
@@ -224,7 +189,7 @@ async def handle_message(message: cl.Message):
 
         # Stream tokens at moderate rate
         response = await current_agent.get_response(
-            refined_input, attachments, engine=vllm_engine
+            refined_input, attachments
         )
         import asyncio
         for char in response:

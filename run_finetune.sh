@@ -4,7 +4,8 @@ set -euo pipefail
 
 
 # Default options (can be overridden by environment variables)
-DATA_PATH=${DATA_PATH:-"/home/models/FAISS_INGEST/scraped_data.json"}
+MODELS_BASE_PATH=${MODELS_BASE_PATH:-"/models"}
+DATA_PATH=${DATA_PATH:-"${MODELS_BASE_PATH}/FAISS_INGEST/scraped_data.json"}
 OUTPUT_DIR=${OUTPUT_DIR:-"./gemma-3-finetuned"}
 NUM_GPUS=${NUM_GPUS:-4}  # Default to 4 GPUs
 EPOCHS=${EPOCHS:-3}

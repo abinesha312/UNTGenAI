@@ -35,18 +35,25 @@ RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://
 ENV TORCH_INDUCTOR_COMPILE_TO_EAGER=1
 
 # ---------- runtime ----------
-ENV NVIDIA_VISIBLE_DEVICES=0,1,2,3 \
+# Support both 4-GPU and 8-GPU configurations via environment variables
+# Default to 8 GPUs for the full H100 cluster setup
+ENV NVIDIA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 \
+    TENSOR_PARALLEL_SIZE=8 \
     HF_HUB_OFFLINE=1 \
     TRANSFORMERS_OFFLINE=1 \
     VLLM_USE_CUDA_GRAPH=1 \
     VLLM_GPU_MEMORY_UTILIZATION=0.5 \
     VLLM_LOGGING_LEVEL=INFO \
-    TORCH_COMPILE_MODE=reduce-overhead
+    TORCH_COMPILE_MODE=reduce-overhead \
+    NCCL_DEBUG=INFO \
+    CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 
 EXPOSE 5000
-CMD ["python","-m","vllm.entrypoints.openai.api_server", \
-    "--host","0.0.0.0","--port","5000", \
-    "--model","google/gemma-3-27b-it", \
-    "--tensor-parallel-size","4", \
-    "--max-model-len","4096", \
-    "--trust-remote-code"]
+CMD python -m vllm.entrypoints.openai.api_server \
+    --host 0.0.0.0 \
+    --port 5000 \
+    --model google/gemma-3-27b-it \
+    --tensor-parallel-size ${TENSOR_PARALLEL_SIZE:-8} \
+    --max-model-len 4096 \
+    --trust-remote-code \
+    --gpu-memory-utilization 0.5
